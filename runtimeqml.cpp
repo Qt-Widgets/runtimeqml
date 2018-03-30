@@ -252,16 +252,22 @@ void RuntimeQML::reloadQml()
             auto const allWindows = m_window->findChildren<QQuickWindow*>();
             for (int i {0}; i < allWindows.size(); ++i) {
                 QQuickWindow* w = qobject_cast<QQuickWindow*>(allWindows.at(i));
-                if (w) w->close();
+                if (w) {
+                    w->close();
+                    w->deleteLater();
+                }
             }
         }
 
         m_window->close();
+        m_window->deleteLater();
     }
 
     m_engine->clearComponentCache();
-    m_engine->load(QUrl(m_selector.select(qrcAbsolutePath() + "/" + m_mainQmlFilename)));
-    // TODO: QQmlApplicationEngine::rootObjects() isn't cleared, should it be?
+    // TODO: test with network files
+    // TODO: QString path to QUrl doesn't work under Windows with load() (load fail)
+    m_engine->load(m_selector.select(qrcAbsolutePath() + "/" + m_mainQmlFilename));
+    // NOTE: QQmlApplicationEngine::rootObjects() isn't cleared, should it be?
 
     if (!m_engine->rootObjects().isEmpty()) {
         QQuickWindow* w = qobject_cast<QQuickWindow*>(m_engine->rootObjects().last());
